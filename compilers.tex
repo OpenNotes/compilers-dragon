@@ -1,0 +1,303 @@
+\documentclass[titlepage]{article}
+\usepackage{multicol}
+\usepackage[outputdir=out]{minted}
+\usepackage{enumitem}
+\usepackage{amsthm}
+\newtheorem{definition}{Definition}
+\mathchardef\mhyphen="2D
+\usemintedstyle{vs}
+
+\begin{document}
+\title{Compilers: Principles Techniques, Tools}
+\author{Aho \and Lam \and Sethi \and Ullman}
+\thanks{Notes by Aidan Glickman}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+Before programs can run, they must be translated to machine code by a compiler.
+
+\subsection{Language Processors}
+\begin{definition}
+    \emph{Compiler}: A program that can translate a program from a source language to a target language
+\end{definition}
+\begin{definition}
+    \emph{Interpreter}: A program that can read a program and execute the operations in it.
+\end{definition}
+Other programs may be necessary for compiling a program. For example a preprocessor may be used to collect source files, expand macros, etc. An assembler may be used to produce machine code from assembly, and linkers and loaders may be used to collect executable code and load in to memory.
+\subsubsection*{Exercises}
+\begin{enumerate}
+    \item What is the difference between a compiler and an interpreter?
+          \begin{quote}
+              While both compilers and interpreters take in source code, a compiler outputs equivalent code in a target language while an interpreter executes the source code directly.
+          \end{quote}
+    \item What are the advantages of (a) a compiler over an interpreter (b) an interpreter over a compiler?
+          \begin{quote}
+              (a) A compiler will often translate code to a more performant form, so it is better when speed is important. (b) An interpreter executes source code statement by statement, so it can often give better error diagnostics and is useful for debugging.
+          \end{quote}
+    \item What advantages are there to a language-processing system in which the compiler produces assembly language rather than machine language.
+          \begin{quote}
+              Assembly language is both much easier to produce and to debug, so it is often better to produce assembly and leave the task of machine code translation to an assembler.
+          \end{quote}
+    \item A compiler that translates a high level language to another high level language is called a \textit{source-to-source} translator. What advantages are there to using C as a target language for a compiler?
+          \begin{quote}
+              C is a great option for a target language because it is both incredibly widespread, with implementations available for virtually any computing platform, and it is highly performant.
+          \end{quote}
+    \item Describe some of the tasks that an assembler needs to perform.
+          \begin{quote}
+              Assemblers are responsible for translating from assembly code to machine code. This involves taking the low-level instructions in the assembly language and converting them to binary instructions that can be understood by the specific processor they are running on.
+          \end{quote}
+\end{enumerate}
+\subsection{The Structure of a Compiler}
+There are two main stages in compilation: \emph{Analysis} and \emph{Synthesis}
+\begin{definition}
+    \emph{Analysis}: The stage of compilation that involves breaking down a source program and imposing a structure on its parts, represented in some intermediate form.
+\end{definition}
+\begin{definition}
+    \emph{Synthesis}: The stage of compilation that constructs the target program from the intermediate representation and symbol table generated during Analysis.
+\end{definition}
+\begin{definition}
+    \emph{Symbol Table}: A data structure that holds information about the source program.
+\end{definition}
+Both of these stages can be broken down further to a series of phases which we will explore more.
+\subsubsection*{Lexical Analysis}
+The first phase of a compiler. Also referred to as "Scanning".
+\begin{definition}
+    \emph{Lexical Analyzer}: The piece of a compiler that reads the characters making up a source program and turning them in to meaningful sequences called lexemes.
+\end{definition}
+Each lexeme read by the Lexical Analyzer will be output as a token of the form
+$$
+    \langle token \mhyphen name, attribute\mhyphen value\rangle
+$$
+that gets passed to syntax analysis. $token \mhyphen name$ is an arbitrary symbol, and $attribute \mhyphen value$ points to the symbol-table entry for the identifier.
+
+\subsubsection*{Syntax Analysis}
+(Analysis)
+The second phase of a compiler. Also called "parsing". Uses the first components of the tokens produced by the lexical analyzer to create an intermediate representation of the grammatical structure of the code, often in the form of a tree.
+\begin{definition}
+    \emph{Syntax Tree}: A common representation of code's grammatical structure where interior nodes represent operations and their children represent the arguments to the operation.
+\end{definition}
+\subsubsection*{Semantic Analysis}
+(Analysis)
+The third stage of a compiler. Uses the syntax tree and symbol table to check for consistency with the source language definition. Also gathers type information to be stored for later use.
+This includes type checking and possibly coercion.
+
+\subsubsection*{Intermediate Code Generation}
+(Analysis)
+An possible stage of a compiler where an explicit low-level intermediate representation of the code is created. This representation should be both easy to produce and easy to translate to the target language.
+\begin{definition}
+    \emph{Three Adress Code}: An intermediate form that consists of instructions with three operands each. Each statement assigns a value with at most one operand on the right. These instructions fix the order of operations, and often make use of temporary registers to store values.
+\end{definition}
+\subsubsection*{Code Optimization}
+An optional compiler steps where intermediate code is optimized for some parameter, most often speed.
+
+This step often takes a significant amount of time, and can use a plethora of different strategies, algorithms and techniques.
+
+\subsubsection*{Code Generation}
+(Synthesis)
+The final phase of a compiler. The code generator takes the intermediate representation generated earlier and maps it in to the target language.
+
+If the target is machine code this may include steps like selecting memory registers.
+
+\subsubsection*{Symbol-Table Management}
+One of the core functions of a compiler is to record variable names used in the source program and collect information about them. This can have a major impact on how these variables are treated later on, for example when it comes to determining a variables type, size, scope, arguments (for functions), etc.
+
+All of this information is stored in the symbol table, which includes a record for each variable with fields for its attributes.
+
+\subsubsection*{The Grouping of Phases into Passes}
+We have discussed the phases of a compiler as a way to logically organize functions, but in practice activities from many phases may be grouped in to a pass that takes in a defined input and outputs something. This is especially useful when developing for multiple platforms, where its possible that a pass of analysis phases will output a carefully defined intermediate representation that can then be read by a group of different synthesis passes that each output machine code for different processors.
+
+\subsubsection*{Compiler-Construction Tools}
+Compiler writers can be greatly benefitted by all of the tools used for general software development (editors, debuggers, version control, etc.) but they also benefit from a collection of specialized tools.
+
+These often use complex algorithms to aid in specific steps of the compilation process.
+
+\begin{enumerate}
+    \item \textit{Parser Generators} automatically produce syntax analyzers based on a description of the source language.
+    \item \textit{Scanner Generators} produce lexical analyzers from regex descriptions of tokens in the source.
+    \item \textit{Syntax-directed translation engines} produce collections of routines for generating intermediate code from a parse tree.
+    \item \textit{Code generator generators} produce code generators from rules for translating operations from your intermediate language to machine code for a specific target.
+    \item \textit{Data-flow analysis engines} aid in gathering information about how values are passed around different parts of a program. This is a key part of code optimization.
+    \item \textit{Compiler-construction toolkits} provide an integrated set of tools for constructing various different phases for your compiler.
+\end{enumerate}
+\subsection{The Evolution of Programming Languages}
+The first electronic computers in the 40's were programmed with explicit low level binary code instructions.
+\subsubsection*{The Move to Higher-level Languages}
+The 50's brought mnemonic assembly languages, which were representations of machine code. Later came macros so that programmers could add frequently used code sequences as single shorthands.
+
+This included the development of languages like Fortran, Cobol and Lisp.
+
+Languages are classified a variety of different ways, for example by generation. First generation languages are machine languages, second generation are assembly, third generation are higher level programming languages, fourth generation are languages designed for specific applications (SQL, \LaTeX) and fifth generation are logic and constraint based languages.
+
+Another classification is imperative vs declarative langauges.
+
+\begin{definition}
+    \emph{Imperative Languages}: Languages where a program specifies how a computation is done. This includes high level object oriented languages.
+\end{definition}
+\begin{definition}
+    \emph{Declarative Languages}: Languages where a program simply specifies what computation is to be done, without implementation. THis includes functional languages and constraint logic languages.
+\end{definition}
+
+There are also other classifications like von Neumann Languages, based on the von Neumann computer model, Object oriented languages, and scripting languages.
+
+\subsubsection*{Impacts on Compilers}
+As languages evolve, their compilers obviously have to evolve with them to support new features and take advantage of newly available computing power. Because of this, creating compilers is a complicated and difficult process.
+
+\subsubsection*{Exercises}
+\begin{enumerate}
+    \item Indicate which of the following terms:
+          \begin{multicols}{3}
+              \begin{enumerate}[label=(\alph*)]
+                  \item imperative
+                  \item declarative
+                  \item von Neumann
+                  \item object-oriented
+                  \item functional
+                  \item third-generation
+                  \item fourth-generation
+                  \item scripting
+              \end{enumerate}
+          \end{multicols}
+          apply to which of the following languages:
+          \begin{multicols}{5}
+              \begin{enumerate}[label=(\arabic*)]
+                  \item C
+                  \item C++
+                  \item Cobol
+                  \item Fortran
+                  \item Java
+                  \item Lisp
+                  \item ML
+                  \item Perl
+                  \item Python
+                  \item VB
+              \end{enumerate}
+          \end{multicols}
+          \begin{quote}
+              \begin{enumerate}[label=(\alph*)]
+                  \item imperative: C, C++, Cobol, Fortran, Java, Perl, Python, VB
+                  \item declarative: Lisp, ML
+                  \item von Neumann: C, C++, Cobol, Fortran, Java, Lisp, ML, Perl, Python, VB
+                  \item object-oriented: C++, Cobol, Fortran, Java, Python, VB
+                  \item functional: Lisp, ML
+                  \item third-generation: C, C++, Cobol, Fortran, Java, Lisp, ML, Perl, Python
+                  \item fourth-generation: VB
+              \end{enumerate}
+          \end{quote}
+\end{enumerate}
+\subsection{The Science of Building a Compiler}
+A core feature of compiler design is abstracting problems to allow for mathematical solutions. A compiler must accept every source program that matches the specs of its source language, and successfully translate them without losing any meaning.
+
+\subsubsection*{Modeling in Compiler Design and Implementation}
+Building a good compiler is mostly a study in designing mathematical models and picking the correct algorithms. It is a balancing act between generality and power and simplicity and efficiency.
+
+The most fundamental models we will use are finite-state machines and regexes, which are useful for describing lexical units and the algorithms our compilers will use to recognize them. We will also make heavy use of context-free grammars for describing syntactic structure, and trees for program structure.
+
+\subsubsection*{The Science of Code Optimization}
+Compiler code optimization is focused on creating well optimized code for the target language, rather than actually optimizing the code written in the source. This is tricky, as the optimizations made must preserve the meaning of the original program, and improve the performance of many programs while keeping compile times reasonable, and not requiring undue effort on by the compiler writer when it comes to implementation or maintenance. This is an openended problem with no right answers.
+
+\subsection{Applications of Compiler Technology}
+Compiler design techniques are not only useful for actually creating compilers, but also for several other areas of computer science.
+
+\subsubsection*{Implementation of High-Level Programming Languages}
+High level programming languages come with the inherent trade-off of ease of use for speed (in most cases). By abstracting away low level operations and adding overhead in the form of features like type safety, modern langauges sacrifice speed at runtime. This gives rise to interesting optimiations like dynamic compiltation, with only frequently used parts of the program are compiled and optimized, while the rest of the program is compiled at runtime.
+
+\subsubsection*{Optimizations for Computer Architectures}
+With the evolution of computer architectures comes a need for new compiler technology. Techniques like parallelism, where multiple actions can be carried out simultaneously across multiple threads and memory hierarchies where frequently used data is stored in faster storage and less frequently accessed data is stored in slower, more available storage, require new compiler technologies.
+
+\subsubsection*{Design of New Computer Architectures}
+In the early days, compilers were developed after the machines they were to target were built. Since most programming is now done in high level languages, this has changed and compilers are often developed in the processor design stage. One example of this is the RISC (Reduced Instruction-Set Computer) architecture which is used in ARM based processors, and which heavily influenced many features of x86.
+
+\subsubsection*{Program Translations}
+We normally think of compiling as translating high level code to machine code, but the same techniques can be applied to translate between different kinds of languages as well. For example, compilers can be used to translate between binary code intended for different processor architectures, from hardware description languages to physical transistor layouts, or from database queries to actual search commands.
+
+\subsubsection*{Software Productivity Tools}
+Since programs are so complicated and errors can lead to system failures and crashes among other things, testing is crucial for finding errors in programs. This can include static error checking with tools like data-flow analysis (think of the warnings your editor or IDE gives you when writing code).
+
+Other static analysis tools include type checking, which can find errors related to typing and control flow, bounds checking, which can safeguards from things like buffer overflows, and memory managers that can deal with garbage collection and avoid memory leaks.
+
+\subsection{Programming Language Basics}
+
+\subsubsection*{The Static/Dynamic Distinction}
+If a language uses a policy that allows the compiler to decide an issue (like typing) then the langauge uses a static (compile time) policy, whereas a langauge that only allows a decision at execution is said to have a dynamic (run time) policy.
+
+One core issue that this distinction effects is how a language treats the scope of different declarations. A language uses static/lexical scope if we can determine the scope of a declaration by just reading the program, and dynamic scope if we need to run the program to see what scope a variable is referring to.
+
+\subsubsection*{Environments and States}
+Another important distinction is whether actions taken during the execution of a program affect the value of data elements or the interpretation of the names of that data. For example, the memory address that a specific variable points to may change as its value is mutated.
+
+\subsubsection*{Static Scope and Block Structure}
+Most languages including C use static scope, where scope rules are based on program structure. Later languages may also include keywords to alter the scope of specific declarations. In languages that follow such a block structure, a variable is generally referring to the definition that is closest to it in scope.
+
+\subsubsection*{Explicit Access Control}
+The addition of classes and structures introduce a new scope; membership. When dealing with the constructs variables will have their access to specific declarations restricted, such that only calls from the same object or the same class have access to a specific declaration.
+
+\subsubsection*{Dynamic Scope}
+In dynamic scope systems, the use of a name refers to the declaration of that name in the most recently called procedure with a declaration for it. This comes up in a few places, for example when the C preprocessor replaces \mintinline{C}{#define} instances, or when to use polymorphic method definitions in an object oriented language.
+
+\subsubsection*{Parameter Passing Mechanisms}
+Programming languages can differ in how they pass arguments to procedures. This is especially important when differentiating between Call-by-Value and Call-by-Reference systems.
+
+\begin{definition}
+    \emph{Call-by-Value}: A paramter system where the value of a passed parameter is either evaluated (if it is an expression) or copied (if it is a variable) and a copy of its value is passed to a procedure.
+\end{definition}
+
+\begin{definition}
+    \emph{Call-by-Reference}: A parameter system where the actual address of the paramater is passed to a procedure.
+\end{definition}
+
+There also used to be another method that was used called Call-by-Name, where procedures acted as if the parameter passed to them were literally substituted for the parameter being passed.
+
+\subsubsection*{Aliasing}
+In systems that rely mostly on pass-by-value, it is possible that two formal parameters can refer to the same memory location. In this case these variables are said to be aliases to one another.
+
+Understanding this mechanism is essential to program optimization, as there are many situations where we can only optimize code if we are certain that certain variables are not aliased, for example when replacing a variable that appears to only be assigned once with its assigned value. If that variable is aliased then an assignment to another variable elsewhere may inadvertantly change its value, making our optimization incorrect.
+
+\subsubsection*{Exercises}
+\begin{enumerate}
+    \item For the block-structured C Code of Fig. 1.13(a), indicate the values assigned to $w, x, y,$ and $z$.
+          \begin{quote}
+              \begin{tabular}{r|l}
+                  Variable & Value \\ \hline
+                  w        & 13    \\
+                  x        & 11    \\
+                  y        & 13    \\
+                  z        & 11    \\
+              \end{tabular}
+          \end{quote}
+    \item Repeat exercise 1.6.1 for the code of Fig. 1.13(b).
+          \begin{quote}
+              \begin{tabular}{r|l}
+                  Variable & Value \\ \hline
+                  w        & 9     \\
+                  x        & 7     \\
+                  y        & 13    \\
+                  z        & 11    \\
+              \end{tabular}
+          \end{quote}
+    \item For the block-structured code of Fig. 1.14, assuming the usual static scoping of declarations, give the scope for each of the twelve declarations.
+          \begin{quote}
+              \begin{tabular}{r|l}
+                  Declaration Location & Scope \\ \hline
+                  B1                   & B1-B5 \\
+                  B2                   & B2-B3 \\
+                  B3                   & B3    \\
+                  B4                   & B4-B5 \\
+                  B5                   & B5
+              \end{tabular}
+          \end{quote}
+    \item What is printed by the following C code?
+          \begin{minted}{C}
+              #define a (x+1)
+              int x = 2;
+              void b() { x = a; printf("%d\n", x);}
+              void c() {int x = 1; printf("%d\n", a);}
+              void main({b(); c();})
+          \end{minted}
+          \begin{quote}
+              3
+              1
+          \end{quote}
+\end{enumerate}
+
+\end{document}
